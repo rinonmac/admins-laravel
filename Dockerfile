@@ -1,24 +1,17 @@
-# Use the official PHP 8.2 image with Alpine Linux 3.20.2
-FROM php:8.2-alpine3.20
-
-# Set the working directory in the container to /app
-WORKDIR /app
-
-# Copy the current directory contents into the container at /app
-COPY . /app
+FROM php:8.2-fpm
 
 # Install necessary dependencies
-RUN apk update && apk add --no-cache \
+RUN apt-get update && apt-get install -y \
     libzip-dev \
     zip \
     unzip \
     libpng-dev \
-    libjpeg-turbo-dev \
+    libjpeg62-turbo-dev \
     libfreetype6-dev \
     locales \
     libpq-dev \
     libxml2-dev \
-    libxslt-dev \
+    libxslt1-dev \
     libicu-dev \
     libssl-dev \
     libmcrypt-dev \
@@ -30,14 +23,37 @@ RUN apk update && apk add --no-cache \
     curl \
     wget \
     nano \
-    && rm -rf /var/cache/apk/*
+    && rm -rf /var/lib/apt/lists/*
 
-# Install the pgsql extension
-RUN docker-php-ext-configure pgsql -with-pgsql=/usr/local/pgsql \
-    && docker-php-ext-install pdo_pgsql
+# Configure locales
+RUN echo "en_US.UTF-8 UTF-8" > /etc/locale.gen && locale-gen
 
-# Install dependencies using Composer
-RUN composer install
+# Install PHP extensions
+RUN docker-php-ext-configure gd --with-jpeg --with-freetype
+RUN docker-php-ext-install -j$(nproc) \
+    bcmath \
+    intl \
+    gd \
+    pdo_pgsql \
+    soap \
+    xsl \
+    zip \
+    opcache
 
-# Set the default command to run when the container starts
-CMD ["php", "artisan", "serve", "--host=0.0.0.0"]
+# Install Composer
+RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+
+# Set working directory
+WORKDIR /var/www/html
+
+# Copy project files
+COPY . .
+
+# Install project dependencies
+RUN composer install --no-interaction --optimize-autoloader
+
+# Expose port 9000
+EXPOSE 9000
+
+# Start PHP-FPM
+CMD ["php-fpm"]
