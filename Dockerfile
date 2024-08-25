@@ -10,18 +10,18 @@ COPY . /app
 # Install necessary dependencies
 RUN apk update && apk add --no-cache \
     # Install PHP extensions
-    # pdo_mysql \
-     curl \
-     gd \
-     zip \
-     bcmath \
-     intl \
-     xdebug \
+    curl \
+    gd \
+    zip \
+    bcmath \
+    intl \
+    xdebug \
     postgresql-dev \
     composer
 
 # Install the pgsql extension
-RUN docker-php-ext-install pdo_pgsql
+RUN docker-php-ext-configure pgsql -with-pgsql=/usr/local/pgsql \
+    && docker-php-ext-install pdo_pgsql
 
 # Set the default command to run when the container starts
 CMD ["php", "artisan", "serve", "--host=0.0.0.0"]
