@@ -9,15 +9,28 @@ COPY . /app
 
 # Install necessary dependencies
 RUN apk update && apk add --no-cache \
-    # Install PHP extensions
-    curl \
-    gd \
+    libzip-dev \
     zip \
-    bcmath \
-    intl \
-    xdebug \
-    postgresql-dev \
-    composer
+    unzip \
+    libpng-dev \
+    libjpeg-turbo-dev \
+    libfreetype6-dev \
+    locales \
+    libpq-dev \
+    libxml2-dev \
+    libxslt-dev \
+    libicu-dev \
+    libssl-dev \
+    libmcrypt-dev \
+    libreadline-dev \
+    libonig-dev \
+    libzip-dev \
+    zlib1g-dev \
+    git \
+    curl \
+    wget \
+    nano \
+    && rm -rf /var/cache/apk/*
 
 # Install the pgsql extension
 RUN docker-php-ext-configure pgsql -with-pgsql=/usr/local/pgsql \
